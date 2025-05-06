@@ -42,9 +42,17 @@ code $env:AppData\Claude\claude_desktop_config.json
   - `WORDPRESS_USERNAME`: WordPress API にアクセスするためのユーザー名。
   - `WORDPRESS_PASSWORD`: `Application Passwords` で生成したパスワード。
   - `WORDPRESS_PATH`: WP CLIを実行するためのWordPressインストールパス。
+  - `WP_CLI_PATH`: （Windowsの場合）wp-cli.pharのフルパス。指定しない場合は同じディレクトリのwp-cli.pharを使用します。
 
 ### 設定の適用
 この設定を用いることで、Claude for Desktop から直接 WordPress に対する操作を行うことができます。設定内容は各自の環境に合わせて適切に調整してください。
+
+### Windowsでの注意事項
+Windows環境でWP CLIを使用する場合は、以下の点に注意してください：
+
+1. `WP_CLI_PATH` 環境変数にwp-cli.pharのフルパスを設定することをお勧めします
+2. PHPがインストールされており、パスが通っていることを確認してください
+3. パスに日本語やスペースが含まれる場合は、パスを引用符で囲むか、短いパス名を使用してください
 
 ## WP CLI 機能の使用方法
 
@@ -53,7 +61,21 @@ wp-mcpyは、WP CLI（WordPress Command Line Interface）を利用してWordPres
 ### 前提条件
 
 1. WP CLIがインストールされていること
+   - Unix/Linux/Mac: `wp` コマンドがシステムパスに設定されていること
+   - Windows: `wp-cli.phar` ファイルが実行パスに配置され、PHPがインストールされていること
+
 2. `WORDPRESS_PATH`環境変数にWordPressのインストールパスが設定されていること
+
+### Windows環境での設定方法
+
+Windows環境でWP CLIを使用するには、以下の手順に従ってください：
+
+1. [WP-CLI公式サイト](https://wp-cli.org/#installing)から `wp-cli.phar` ファイルをダウンロード
+2. ダウンロードした `wp-cli.phar` ファイルを、`wp-mcpy.py` と同じディレクトリに配置するか、システムパスの通ったディレクトリに配置
+3. PHPがインストールされていることを確認
+4. 以下のいずれかの方法でWP CLIを実行できます：
+   - コマンドライン: `php wp-cli.phar --info`
+   - wp-mcpy経由: Claudeから「WordPressの情報を教えてください」などで操作
 
 ### 利用可能なWP CLI関連ツール
 

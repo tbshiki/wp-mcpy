@@ -170,16 +170,13 @@ async def run_wp_cli_command(command: List[str], wordpress_path: str = "") -> Di
     Returns:
         コマンドの実行結果
     """
-    from os import getenv
+    from os import getenv, name as os_name
 
     # WordPressのパスが指定されていない場合は環境変数から取得
     if not wordpress_path:
         wordpress_path = getenv("WORDPRESS_PATH", "")
         if not wordpress_path:
             return {"error": "WordPressのパスが指定されていません。環境変数 WORDPRESS_PATH を設定してください。"}
-
-    # WP CLIコマンドの構築
-    full_command = ["wp"] + command
 
     # コマンドの基本構造をチェック（少なくともコマンドグループとサブコマンドが必要）
     if len(command) < 2:
@@ -218,10 +215,11 @@ async def run_wp_cli_command(command: List[str], wordpress_path: str = "") -> Di
     for arg in command[2:]:
         if arg.startswith("--"):
             # パラメーター名を抽出（--key=value -> key）
-            param_name = arg.split("=")[0][2:]  # "--"を除去
+            param_parts = arg.split("=", 1)
+            param_name = param_parts[0][2:]  # "--"を除去
 
             # ブラックリストチェック
-            if arg in BLACKLIST_PARAMETERS:
+            if any(blacklisted in arg for blacklisted in BLACKLIST_PARAMETERS):
                 return {"success": False, "error": f"パラメーター '{arg}' は禁止されています。"}
 
             # ホワイトリストチェック
@@ -231,15 +229,36 @@ async def run_wp_cli_command(command: List[str], wordpress_path: str = "") -> Di
                     "error": f"パラメーター '{param_name}' は '{command_group} {subcommand}' で許可されていません。許可されているパラメーター: {', '.join(allowed_params)}"
                 }
 
-    if "--format=json" not in full_command:
+    # WP CLIコマンドの構築（OSによって異なる）
+    is_windows = os_name == 'nt'
+    wp_cli_path = getenv("WP_CLI_PATH", "")
+
+    if is_windows:
+        if wp_cli_path:
+            # 環境変数で指定されたWP-CLIのパスを使用
+            wp_command = ["php", wp_cli_path]
+        else:
+            # デフォルトではカレントディレクトリのwp-cli.pharを使用
+            wp_command = ["php", "wp-cli.phar"]
+    else:
+        # Unix系の場合は wp コマンドを使用
+        wp_command = ["wp"]
+
+    full_command = wp_command + command
+
+    if "--format=json" not in [arg.lower() for arg in full_command]:
         # 標準で JSON 形式で出力するように設定
         full_command.append("--format=json")
 
     # パスが指定されている場合は--pathオプションを追加
-    if wordpress_path and "--path" not in " ".join(full_command):
+    if wordpress_path and not any(arg.startswith("--path") for arg in full_command):
         full_command.extend(["--path", wordpress_path])
 
     try:
+        # コマンドの実行を記録
+        command_str = " ".join(full_command)
+        print(f"実行するコマンド: {command_str}")
+
         # サブプロセスでコマンドを実行
         process = await asyncio.create_subprocess_exec(*full_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 
@@ -248,17 +267,18 @@ async def run_wp_cli_command(command: List[str], wordpress_path: str = "") -> Di
 
         if process.returncode != 0:
             # エラーが発生した場合
-            return {"success": False, "error": stderr.decode("utf-8").strip(), "command": " ".join(full_command), "return_code": process.returncode}
+            error_msg = stderr.decode("utf-8").strip()
+            return {"success": False, "error": error_msg, "command": command_str, "return_code": process.returncode}
 
         # 標準出力を取得してJSONに変換
         output = stdout.decode("utf-8").strip()
         try:
             # JSON形式の場合はパース
             result = json.loads(output)
-            return {"success": True, "result": result, "command": " ".join(full_command)}
+            return {"success": True, "result": result, "command": command_str}
         except json.JSONDecodeError:
             # JSON形式でない場合はそのまま返す
-            return {"success": True, "result": output, "command": " ".join(full_command)}
+            return {"success": True, "result": output, "command": command_str}
 
     except Exception as e:
         return {"success": False, "error": str(e), "command": " ".join(full_command)}
