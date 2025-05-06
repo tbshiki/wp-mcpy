@@ -1,0 +1,95 @@
+{
+  // WP CLI コマンドの制限設定
+  "wp_cli": {
+    // ホワイトリストコマンドの設定
+    // 第一階層: コマンドグループ
+    // 第二階層: 許可するサブコマンド
+    "whitelist_commands": {
+      "plugin": ["list", "status", "get", "info"],
+      "theme": ["list", "status", "get", "info"],
+      "user": ["list", "get", "check"],
+      "db": ["check", "tables", "size"],
+      "site": ["info", "status"],
+      "core": ["version", "check-update"],
+      "post": ["list", "get", "count"],
+      "option": ["list", "get"],
+      "post-type": ["list"],
+      "taxonomy": ["list"],
+      "menu": ["list"],
+      "media": ["list"]
+    },
+
+    // コマンド・サブコマンド別の許可パラメーター
+    // 空のリストは何もパラメーターを許可しないことを意味します
+    "allowed_parameters": {
+      "plugin": {
+        "list": ["status", "format", "field", "fields"],
+        "status": ["format", "field", "fields"],
+        "get": ["field", "fields", "format"],
+        "info": ["field", "fields", "format"]
+      },
+      "theme": {
+        "list": ["status", "format", "field", "fields"],
+        "status": ["format", "field", "fields"],
+        "get": ["field", "fields", "format"],
+        "info": ["field", "fields", "format"]
+      },
+      "user": {
+        "list": ["role", "format", "field", "fields", "orderby", "order"],
+        "get": ["field", "fields", "format"],
+        "check": ["format"]
+      },
+      "db": {
+        "check": ["format"],
+        "tables": ["scope", "format", "all-tables", "all-tables-with-prefix"],
+        "size": ["format", "tables", "all-tables", "all-tables-with-prefix"]
+      },
+      "site": {
+        "info": ["format", "field", "fields"],
+        "status": ["format"]
+      },
+      "core": {
+        "version": ["extra"],
+        "check-update": ["format", "minor", "major"]
+      },
+      "post": {
+        "list": ["post_type", "format", "field", "fields", "number", "orderby", "order", "post_status"],
+        "get": ["field", "fields", "format"],
+        "count": ["post_type", "post_status", "format"]
+      },
+      "option": {
+        "list": ["format", "search", "autoload"],
+        "get": ["format"]
+      },
+      "post-type": {
+        "list": ["format", "field", "fields"]
+      },
+      "taxonomy": {
+        "list": ["format", "field", "fields"]
+      },
+      "menu": {
+        "list": ["format", "field", "fields"]
+      },
+      "media": {
+        "list": ["format", "field", "fields", "limit"]
+      }
+    },
+
+    // 全てのコマンドで許可されるグローバルパラメーター
+    "allowed_global_parameters": ["format", "help", "quiet", "path"],
+
+    // 明示的に禁止するパラメーター（セキュリティリスク）
+    "blacklist_parameters": [
+      "--force",
+      "--delete",
+      "--allow-root",
+      "--user",
+      "--skip-plugins",
+      "--skip-themes",
+      "--require",
+      "--exec",
+      "--eval",
+      "--debug"
+    ]
+  }
+}
