@@ -24,7 +24,8 @@ code $env:AppData\Claude\claude_desktop_config.json
       "env": {
         "WORDPRESS_SITE_URL": "https://example.com",
         "WORDPRESS_USERNAME": "{{your_username}}",
-        "WORDPRESS_PASSWORD": "{{your_application_password}}"
+        "WORDPRESS_PASSWORD": "{{your_application_password}}",
+        "WORDPRESS_PATH": "{{WordPressのインストールパス}}"
       }
     }
   }
@@ -40,7 +41,124 @@ code $env:AppData\Claude\claude_desktop_config.json
   - `WORDPRESS_SITE_URL`: WordPress のサイト URL。
   - `WORDPRESS_USERNAME`: WordPress API にアクセスするためのユーザー名。
   - `WORDPRESS_PASSWORD`: `Application Passwords` で生成したパスワード。
+  - `WORDPRESS_PATH`: WP CLIを実行するためのWordPressインストールパス。
 
 ### 設定の適用
 この設定を用いることで、Claude for Desktop から直接 WordPress に対する操作を行うことができます。設定内容は各自の環境に合わせて適切に調整してください。
+
+## WP CLI 機能の使用方法
+
+wp-mcpyは、WP CLI（WordPress Command Line Interface）を利用してWordPressを管理する機能も提供しています。これにより、プラグイン管理、テーマ管理、ユーザー管理、データベース操作などをClaudeから直接実行できます。
+
+### 前提条件
+
+1. WP CLIがインストールされていること
+2. `WORDPRESS_PATH`環境変数にWordPressのインストールパスが設定されていること
+
+### 利用可能なWP CLI関連ツール
+
+#### 1. プラグイン管理 (wp_plugin)
+
+プラグインの一覧表示、インストール、有効化、無効化などを行います。
+
+```python
+# プラグイン一覧の取得
+wp_plugin(action="list")
+
+# プラグインのインストール
+wp_plugin(action="install", plugin_name="akismet")
+
+# プラグインの有効化
+wp_plugin(action="activate", plugin_name="akismet")
+
+# プラグインの無効化
+wp_plugin(action="deactivate", plugin_name="akismet")
+
+# プラグインの削除
+wp_plugin(action="delete", plugin_name="hello")
+```
+
+#### 2. テーマ管理 (wp_theme)
+
+テーマの一覧表示、インストール、有効化などを行います。
+
+```python
+# テーマ一覧の取得
+wp_theme(action="list")
+
+# テーマのインストール
+wp_theme(action="install", theme_name="twentytwentytwo")
+
+# テーマの有効化
+wp_theme(action="activate", theme_name="twentytwentytwo")
+```
+
+#### 3. ユーザー管理 (wp_user)
+
+ユーザーの一覧表示、作成、更新、削除などを行います。
+
+```python
+# ユーザー一覧の取得
+wp_user(action="list")
+
+# ユーザーの作成
+wp_user(
+    action="create",
+    user_args={
+        "user_login": "newuser",
+        "user_email": "user@example.com",
+        "user_pass": "password",
+        "role": "author"
+    }
+)
+
+# ユーザーの更新
+wp_user(
+    action="update",
+    user_args={
+        "id": 2,
+        "display_name": "New Display Name",
+        "role": "editor"
+    }
+)
+
+# ユーザーの削除
+wp_user(action="delete", user_args={"id": 3})
+```
+
+#### 4. データベース操作 (wp_db)
+
+データベースのエクスポート、インポート、最適化、修復などを行います。
+
+```python
+# データベースの最適化
+wp_db(action="optimize")
+
+# データベースの修復
+wp_db(action="repair")
+
+# データベースのエクスポート
+wp_db(action="export", args={"file": "/path/to/export.sql"})
+```
+
+#### 5. 汎用WP CLIコマンド実行 (wp_cli)
+
+上記のツールでカバーされていない任意のWP CLIコマンドを実行できます。
+
+```python
+# カスタム投稿タイプの一覧表示
+wp_cli(command_str="post-type list")
+
+# サイト情報の取得
+wp_cli(command_str="site info")
+
+# メディアファイルの一覧表示
+wp_cli(command_str="media list")
+```
+
+### 注意事項
+
+- WP CLIコマンドを実行するには、サーバー上にWP CLIがインストールされている必要があります。
+- セキュリティ上の理由から、`--allow-root`や`--user`などの特定のオプションは制限されている場合があります。
+- 大規模なデータベース操作（インポート/エクスポートなど）は時間がかかる場合があります。
 

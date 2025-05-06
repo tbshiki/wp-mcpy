@@ -1,10 +1,18 @@
 [project]
 name = "wp-mcpy"
 version = "0.1.0"
-description = ""
+description = "WordPress MCP サーバー with WP CLI 対応"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
     "mcp[cli]>=1.3.0",
 ]
+
+[tool.wp-mcpy]
+# WordPress API 関連のデフォルト環境変数
+wordpress_site_url = { env = "WORDPRESS_SITE_URL" }
+wordpress_username = { env = "WORDPRESS_USERNAME" }
+wordpress_password = { env = "WORDPRESS_PASSWORD" }
+# WP CLI 関連のデフォルト環境変数
+wordpress_path = { env = "WORDPRESS_PATH" }
